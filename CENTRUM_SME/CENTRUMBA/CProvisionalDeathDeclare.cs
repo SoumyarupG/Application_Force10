@@ -1,0 +1,167 @@
+﻿using System;
+using System.Data;
+using System.Data.SqlClient;
+using CENTRUMDA;
+
+namespace CENTRUMBA
+{
+    public class CProvisionalDeathDeclare
+    {          
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pFrmDt"></param>
+        /// <param name="pToDt"></param>
+        /// <param name="pBranch"></param>
+        /// <returns></returns>
+        public DataTable GetAllMemberDetailWithOpenLoan(string pSearch, string pBranch, DateTime pDate)
+        {
+            DataTable dt = new DataTable();
+            SqlCommand oCmd = new SqlCommand();
+            try
+            {
+                oCmd.CommandType = CommandType.StoredProcedure;
+                oCmd.CommandText = "GetMemDetailWithOpenLoanProvDeathDec";
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.VarChar, 4, "@pBranch", pBranch);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.VarChar, 300, "@pSearch", pSearch);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.DateTime, 8, "@pDate", pDate);
+                DBUtility.ExecuteForSelect(oCmd, dt);
+                return dt;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                oCmd.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pSearch"></param>
+        /// <param name="pBranch"></param>
+        /// <param name="pDate"></param>
+        /// <returns></returns>
+        public Int32 SaveProvisionalDeathDec(string pXml, int pCreatedBy, string pBranch, DateTime pDate)
+        {
+            DataTable dt = new DataTable();
+            Int32 vErr = 0;
+            SqlCommand oCmd = new SqlCommand();
+            try
+            {
+                oCmd.CommandType = CommandType.StoredProcedure;
+                oCmd.CommandText = "SaveProvisionalDeathDec";
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.VarChar, 4, "@pBranch", pBranch);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.VarChar, pXml.Length + 1, "@pXml", pXml);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.DateTime, 8, "@pDate", pDate);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.Int, 4, "@pCreatedBy", pCreatedBy);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Output, SqlDbType.Int, 4, "@pErr", 0);
+                DBUtility.Execute(oCmd);
+                vErr = Convert.ToInt32(oCmd.Parameters["@pErr"].Value);
+                if (vErr == 0)
+                    return 1;
+                else
+                    return 0;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                oCmd.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pSearch"></param>
+        /// <param name="pBranch"></param>
+        /// <param name="pDate"></param>
+        /// <returns></returns>
+        public Int32 chkAccrInt(string pLoanNo, DateTime pDate)
+        {
+            DataTable dt = new DataTable();
+            Int32 vErr = 0;
+            SqlCommand oCmd = new SqlCommand();
+            try
+            {
+                oCmd.CommandType = CommandType.StoredProcedure;
+                oCmd.CommandText = "chkAccrIntProvDeathDec";
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.VarChar, 12, "@pLoanNo", pLoanNo);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.DateTime, 8, "@pDate", pDate);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Output, SqlDbType.Int, 4, "@pErr", 0);
+                DBUtility.Execute(oCmd);
+                vErr = Convert.ToInt32(oCmd.Parameters["@pErr"].Value);
+                if (vErr == 0)
+                    return 1;
+                else
+                    return 0;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                oCmd.Dispose();
+            }
+        }
+
+        public DataTable PendingFundSourceUpload(DateTime pAsOnDt)
+        {
+            DataTable dt = new DataTable();
+            SqlCommand oCmd = new SqlCommand();
+            try
+            {
+                oCmd.CommandType = CommandType.StoredProcedure;
+                oCmd.CommandText = "PendingFundSourceUpload";
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.DateTime, 8, "@pAsOnDt", pAsOnDt);
+                DBUtility.ExecuteForSelect(oCmd, dt);
+                return dt;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                oCmd.Dispose();
+            }
+        }
+
+        public Int32 ApproveFundSourceUpload_Initial(Int64 pFSUID, DateTime pLoginDt, Int32 pAppBy, string pAppRej)
+        {
+            SqlCommand oCmd = new SqlCommand();
+            Int32 vErr = 0;
+            try
+            {
+                oCmd.CommandType = CommandType.StoredProcedure;
+                oCmd.CommandText = "ApproveFundSourceUpload_Initial";
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.BigInt, 8, "@pFSUID", pFSUID);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.DateTime, 8, "@pLoginDt", pLoginDt);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.Int, 4, "@pAppBy", pAppBy);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Input, SqlDbType.VarChar, 1, "@pAppRej", pAppRej);
+                DBUtility.AddParameter(oCmd.Parameters, ParameterDirection.Output, SqlDbType.Int, 4, "@pErr", 0);
+                DBUtility.Execute(oCmd);
+                vErr = Convert.ToInt32(oCmd.Parameters["@pErr"].Value);
+
+                return vErr;
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                oCmd.Dispose();
+            }
+
+        }
+    }
+}

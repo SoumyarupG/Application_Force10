@@ -1,0 +1,10 @@
+﻿
+
+namespace CENTRUMBA
+{
+    class CBankRepaySchedule
+    {
+       
+    }
+    
+}

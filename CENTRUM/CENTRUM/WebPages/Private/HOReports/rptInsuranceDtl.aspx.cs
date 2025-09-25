@@ -1,0 +1,239 @@
+﻿using System;
+using System.Data;
+using CrystalDecisions.Shared;
+using CrystalDecisions.CrystalReports.Engine;
+using FORCECA;
+using FORCEBA;
+using System.IO;
+using System.Web.UI;
+using System.Web;
+
+namespace CENTRUM.WebPages.Private.HOReports
+{
+    public partial class rptInsuranceDtl : CENTRUMBase
+    {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            InitBasePage();
+            if (!IsPostBack)
+            {
+                txtFDt.Text = Convert.ToString(Session[gblValue.LoginDate]);
+                txtTDt.Text = Convert.ToString(Session[gblValue.LoginDate]);
+                PopBranch();
+            }
+        }
+
+        private void InitBasePage()
+        {
+            try
+            {
+                this.Menu = false;
+                this.PageHeading = "Insurance Details";
+                //this.ShowPageHeading = true;
+                this.ShowBranchName = Session[gblValue.BrnchCode].ToString() + " - " + Session[gblValue.BrName].ToString();
+                this.ShowFinYear = Session[gblValue.FinYear].ToString() + " ( Login Date " + Session[gblValue.LoginDate].ToString() + " )";
+                this.GetModuleByRole(mnuID.mnuHOInsuDtlsRpt);
+                if (this.UserID == 1) return;
+            }
+            catch
+            {
+                Response.Redirect("~/Login.aspx", false);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected void btnExit_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Response.Redirect("~/WebPages/Public/Main.aspx", false);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected void btnExcl_Click(object sender, EventArgs e)
+        {
+            SetParameterForRptData("Excel");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void PopBranch()
+        {
+            Int32 vRow;
+            string strin = "";
+            ViewState["BrCode"] = null;
+            DataTable dt = null;
+            CUser oUsr = null;
+            Int32 vBrId = 0;
+            DateTime vLogDt = gblFuction.setDate(Session[gblValue.LoginDate].ToString());
+
+            oUsr = new CUser();
+            dt = oUsr.GetBranchByUser(Session[gblValue.UserName].ToString(), Convert.ToInt32(Session[gblValue.RoleId]));
+
+            chkBrDtl.DataSource = dt;
+            chkBrDtl.DataTextField = "BranchName";
+            chkBrDtl.DataValueField = "BranchCode";
+            chkBrDtl.DataBind();
+
+            if (rblAlSel.SelectedValue == "rbAll")
+            {
+                chkBrDtl.Enabled = false;
+                for (vRow = 0; vRow < chkBrDtl.Items.Count; vRow++)
+                {
+                    chkBrDtl.Items[vRow].Selected = true;
+                    if (strin == "")
+                    {
+                        strin = chkBrDtl.Items[vRow].Value;
+                    }
+                    else
+                    {
+                        strin = strin + "," + chkBrDtl.Items[vRow].Value + "";
+                    }
+                }
+            }
+            else if (rblAlSel.SelectedValue == "rbSel")
+            {
+                for (vRow = 0; vRow < chkBrDtl.Items.Count; vRow++)
+                {
+                    chkBrDtl.Items[vRow].Selected = false;
+                }
+            }
+            ViewState["BrCode"] = strin;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void CheckBrAll()
+        {
+            Int32 vRow;
+            string strin = "";
+            if (rblAlSel.SelectedValue == "rbAll")
+            {
+                chkBrDtl.Enabled = false;
+                for (vRow = 0; vRow < chkBrDtl.Items.Count; vRow++)
+                {
+                    chkBrDtl.Items[vRow].Selected = true;
+                    if (strin == "")
+                    {
+                        strin = chkBrDtl.Items[vRow].Value;
+                    }
+                    else
+                    {
+                        strin = strin + "," + chkBrDtl.Items[vRow].Value + "";
+                    }
+                }
+                ViewState["BrCode"] = strin;
+            }
+            else if (rblAlSel.SelectedValue == "rbSel")
+            {
+                ViewState["BrCode"] = null;
+                chkBrDtl.Enabled = true;
+                for (vRow = 0; vRow < chkBrDtl.Items.Count; vRow++)
+                    chkBrDtl.Items[vRow].Selected = false;
+
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected void rblAlSel_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CheckBrAll();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+
+
+        protected void chkBrDtl_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Int32 vRow;
+            string strin = "";
+            for (vRow = 0; vRow < chkBrDtl.Items.Count; vRow++)
+            {
+                if (chkBrDtl.Items[vRow].Selected == true)
+                {
+                    if (strin == "")
+                    {
+                        strin = chkBrDtl.Items[vRow].Value;
+                    }
+                    else
+                    {
+                        strin = strin + "," + chkBrDtl.Items[vRow].Value + "";
+                    }
+                }
+            }
+            ViewState["BrCode"] = strin;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pMode"></param>
+        private void SetParameterForRptData(string pMode)
+        {
+            DateTime vFromDt = gblFuction.setDate(txtFDt.Text);
+            DateTime vToDt = gblFuction.setDate(txtTDt.Text);
+            string vBrCode = ViewState["BrCode"].ToString();
+            string vFileNm = "";
+            string vBranch = Session[gblValue.BrName].ToString();
+            DataTable dt = null;
+            CReports oRpt = new CReports();
+
+            System.Web.UI.WebControls.DataGrid DataGrid1 = new System.Web.UI.WebControls.DataGrid();
+            dt = oRpt.rptInsuranceDtl(vFromDt, vToDt, vBrCode);
+
+            DataGrid1.DataSource = dt;
+            DataGrid1.DataBind();
+
+            tdx.Controls.Add(DataGrid1);
+            tdx.Visible = false;
+            vFileNm = "attachment;filename=Insurance_Details_Report";
+            StringWriter sw = new StringWriter();
+            HtmlTextWriter htw = new HtmlTextWriter(sw);
+            htw.WriteLine("<table border='1' cellpadding='8' widht='100%'>");
+            htw.WriteLine("<tr><td align=center' colspan='29'><b><font size='6'>" + gblValue.CompName + "</font></b></td></tr>");
+            htw.WriteLine("<tr><td align=center' colspan='29'><b><font size='3'>" + CGblIdGenerator.GetBranchAddress1("0000") + "</font></b></td></tr>");
+            htw.WriteLine("<tr><td align=center' colspan='29'><b><font size='4'>Insurance Report For the Period from " + txtFDt.Text + " to " + txtTDt.Text + "</font></b></td></tr>");
+            DataGrid1.RenderControl(htw);
+            htw.WriteLine("</td></tr>");
+            htw.WriteLine("<tr><td colspan='29'><b><u><font size='16'></font></u></b></td></tr>");
+            htw.WriteLine("</table>");
+
+            Response.ClearContent();
+            Response.AddHeader("content-disposition", vFileNm);
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.ContentType = "application/vnd.ms-excel";
+            Response.Write(sw.ToString());
+            Response.End();
+
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
+        
+    }
+}
